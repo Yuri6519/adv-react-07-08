@@ -1,14 +1,24 @@
 import React, { Component } from 'react'
 import { Route, NavLink } from 'react-router-dom'
+import { connect } from 'react-redux'
 import AuthPage from './components/routes/auth'
 import AdminPage from './components/routes/admin'
+import firebase from 'firebase/app'
+import { stateChange, isAuthSelector, currentMail } from '../src/ducs/auth'
 
 class App extends Component {
   static propTypes = {}
 
+  componentDidMount() {
+    firebase.auth().onAuthStateChanged(this.props.stateChange)
+  }
+
   render() {
+    const { isAuth, mail } = this.props
+
     return (
       <div>
+        {isAuth ? <h2>Авторизован: {mail}</h2> : null}
         <nav>
           <ul>
             <li>
@@ -32,4 +42,12 @@ class App extends Component {
   }
 }
 
-export default App
+const mapStateToProps = (state) => ({
+  isAuth: isAuthSelector(state),
+  mail: currentMail(state)
+})
+
+export default connect(
+  mapStateToProps,
+  { stateChange }
+)(App)
