@@ -3,14 +3,15 @@ import { Route, NavLink } from 'react-router-dom'
 import { connect } from 'react-redux'
 import AuthPage from './components/routes/auth'
 import AdminPage from './components/routes/admin'
-import firebase from 'firebase/app'
-import { stateChange, isAuthSelector, currentMail } from '../src/ducs/auth'
+//import firebase from 'firebase/app'
+import { /*stateChange,*/ isAuthSelector, currentMail } from '../src/ducs/auth'
 
 class App extends Component {
   static propTypes = {}
 
   componentDidMount() {
-    firebase.auth().onAuthStateChanged(this.props.stateChange)
+    // убрал в инит стора
+    //firebase.auth().onAuthStateChanged(this.props.stateChange)
   }
 
   render() {
@@ -48,6 +49,6 @@ const mapStateToProps = (state) => ({
 })
 
 export default connect(
-  mapStateToProps,
-  { stateChange }
+  mapStateToProps
+  //{ stateChange }
 )(App)

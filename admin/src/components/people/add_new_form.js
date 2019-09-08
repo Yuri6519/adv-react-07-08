@@ -2,7 +2,7 @@ import React from 'react'
 import { reduxForm, Field, reset } from 'redux-form'
 import { connect } from 'react-redux'
 import ErrorField from '../common/error_field'
-import { addPeople } from '../../ducs/people'
+import { addPerson } from '../../ducs/people'
 import { moduleName } from '../../ducs/people'
 
 const FORM_NAME = 'people-add-new'
@@ -26,9 +26,10 @@ const doList = (list) => {
   let i = 0
 
   list.forEach((element) => {
-    const person = `${element.get('lastName')} ${element.get(
-      'userName'
-    )} ${element.get('surName')}`
+    const person = `${element.get('id')}
+                    ${element.get('lastName')}
+                    ${element.get('userName')} 
+                    ${element.get('surName')}`
     array.push(<li key={++i}>{person}</li>)
   })
 
@@ -61,8 +62,7 @@ const mapStateToProps = (state) => ({
 })
 
 const mapDispatchToProps = {
-  onSubmit: ({ lastName, userName, surName }) =>
-    addPeople(lastName, userName, surName)
+  onSubmit: (person) => addPerson(person)
 }
 
 const onSubmitSuccess = (_, dispatch) => dispatch(reset(FORM_NAME))

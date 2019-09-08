@@ -1,5 +1,7 @@
 import { appName } from '../config'
 import { Record, List } from 'immutable'
+import { put, takeEvery, call } from 'redux-saga/effects'
+import { generateId } from '../services/utils'
 
 /**
  * Constants
@@ -11,10 +13,13 @@ export const PEOPLE_ADD_START = `${prefix}/PEOPLE_ADD_START`
 export const PEOPLE_ADD_SUCCESS = `${prefix}/PEOPLE_ADD_SUCCESS`
 export const PEOPLE_ADD_ERROR = `${prefix}/PEOPLE_ADD_ERROR`
 
+export const PEOPLE_ADD_REQUEST = `${prefix}/PEOPLE_ADD_REQUEST`
+
 /**
  * Reducer
  * */
 export const ReducerRecord = Record({
+  id: null,
   lastName: null,
   userName: null,
   surName: null
@@ -22,7 +27,7 @@ export const ReducerRecord = Record({
 
 export const ReducerList = List
 
-export default function reducer(state = new ReducerList(), action) {
+export default function reducer(state = new ReducerList(), action = {}) {
   const { type, payload } = action
 
   switch (type) {
@@ -40,9 +45,9 @@ export default function reducer(state = new ReducerList(), action) {
 /**
  * Action Creators
  * */
-
-export function addPeople(lastName, userName, surName) {
-  return async (dispatch) => {
+// не используется после написания саги
+export function addPeople(person) {
+  return (dispatch) => {
     dispatch({
       type: PEOPLE_ADD_START
     })
@@ -50,7 +55,7 @@ export function addPeople(lastName, userName, surName) {
     try {
       dispatch({
         type: PEOPLE_ADD_SUCCESS,
-        payload: { lastName, userName, surName }
+        payload: { id: Date.now(), ...person }
       })
     } catch (error) {
       dispatch({
@@ -59,4 +64,30 @@ export function addPeople(lastName, userName, surName) {
       })
     }
   }
+}
+
+// action creator for saga
+export function addPerson(person) {
+  return {
+    type: PEOPLE_ADD_REQUEST,
+    payload: { person }
+  }
+}
+
+/**
+ * Sagas
+ * */
+export function* addPersonSaga(action) {
+  const id = yield call(generateId)
+  yield put({
+    type: PEOPLE_ADD_SUCCESS,
+    payload: {
+      id,
+      ...action.payload.person
+    }
+  })
+}
+
+export function* saga() {
+  yield takeEvery(PEOPLE_ADD_REQUEST, addPersonSaga)
 }
