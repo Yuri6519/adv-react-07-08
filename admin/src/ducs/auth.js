@@ -136,27 +136,6 @@ export function signIn(email, password) {
     type: SIGN_IN_REQUEST,
     payload: { email, password }
   }
-
-  // Thunk
-  // return async (dispatch) => {
-  //   dispatch({
-  //     type: SIGN_IN_START
-  //   })
-
-  //   try {
-  //     const user = await api.signIn(email, password);
-
-  //     dispatch({
-  //       type: SIGN_IN_SUCCESS,
-  //       payload: { user }
-  //     })
-  //   } catch (error) {
-  //     dispatch({
-  //       type: SIGN_IN_ERROR,
-  //       error
-  //     })
-  //   }
-  // }
 }
 
 export function signUp(email, password) {
@@ -165,36 +144,6 @@ export function signUp(email, password) {
   return {
     type: SIGN_UP_REQUEST,
     payload: { email, password }
-  }
-
-  // Thunk
-  // return async (dispatch) => {
-  //   dispatch({
-  //     type: SIGN_UP_START
-  //   })
-
-  //   try {
-  //     const user = await api.signUp(email, password)
-
-  //     dispatch({
-  //       type: SIGN_UP_SUCCESS,
-  //       payload: { user }
-  //     })
-  //   } catch (error) {
-  //     dispatch({
-  //       type: SIGN_UP_ERROR,
-  //       error
-  //     })
-  //   }
-  // }
-}
-
-export function stateChange(user) {
-  console.log('DUCK::stateChange::user::', user)
-
-  return {
-    type: STATE_CHANGE_REQUEST,
-    payload: { user }
   }
 }
 
