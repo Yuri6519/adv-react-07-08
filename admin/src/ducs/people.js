@@ -27,12 +27,12 @@ export const ReducerRecord = Record({
 
 export const ReducerList = List
 
-export default function reducer(state = new ReducerList(), action = {}) {
+export default function reducer(state = ReducerList(), action = {}) {
   const { type, payload } = action
 
   switch (type) {
     case PEOPLE_ADD_SUCCESS:
-      return state.push(new ReducerRecord(payload))
+      return state.push(ReducerRecord(payload))
     default:
       return state
   }

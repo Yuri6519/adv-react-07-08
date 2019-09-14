@@ -8,3 +8,29 @@ export function saveEventsToFB() {
 }
 
 window.saveEventsToFB = saveEventsToFB
+
+export function getCollectionFromDb() {
+  const eventsRef = firebase.firestore().collection('events')
+  eventsRef
+    .get()
+    .then((all) =>
+      all.forEach((doc) => {
+        const { title, ...rest } = doc.data()
+        console.log(doc.id, '=>', title, '=>rest:: ', rest)
+      })
+    )
+    .catch((err) => console.log('Error getting documents', err))
+}
+
+window.getCollectionFromDb = getCollectionFromDb
+
+export async function getCollectionFromDb123() {
+  const eventsRef = firebase.firestore().collection('events')
+
+  const all = await eventsRef.get()
+  all.forEach((doc) => {
+    console.log('all123::', { id: doc.id, ...doc.data() })
+  })
+}
+
+window.getCollectionFromDb123 = getCollectionFromDb123

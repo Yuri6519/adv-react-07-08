@@ -1,13 +1,57 @@
 import React, { PureComponent } from 'react'
-import { list } from '../../mocks/conferences'
+import { connect } from 'react-redux'
+import {
+  getAll,
+  listSelector,
+  loadingSelector
+} from '../../ducs/conference-list'
 
 class ConferenceList extends PureComponent {
+  componentDidMount() {
+    const { list = [] } = this.props
+    if (list.length === 0) this.props.getAll()
+  }
+
+  getRecord = (index, data) => (
+    <tr key={data.id}>
+      <td style={{ textAlign: 'right' }}>{index}</td>
+      <td>{data.title}</td>
+      <td>{data.url}</td>
+      <td>{data.where}</td>
+      <td>{data.when}</td>
+      <td>{data.month}</td>
+      <td>{data.submissionDeadline}</td>
+    </tr>
+  )
+
+  getTable = (data) => {
+    if (!data || !(data instanceof Array)) return null
+
+    const res = []
+
+    for (const key in data) {
+      const record = data[key]
+      res.push(this.getRecord(key, record))
+    }
+
+    return res
+  }
+
   render() {
+    const { list = [], loading } = this.props
+
+    console.log('ConferenceList::loading::', loading)
+    console.log('ConferenceList::list::', list)
+    console.log('ConferenceList::list.length::', list.length)
+
+    if (loading) return <h1>Загрузка...</h1>
+    if (!list || list.length === 0) return <div>Список конференций пуст</div>
+
     return (
-      // <table id="dynamic" width="650" border="1" cellSpacing="0" cellPadding="5">
       <table id="dynamic" border="1" cellSpacing="0" cellPadding="5">
         <tbody>
           <tr>
+            <th>Num</th>
             <th>Title</th>
             <th>Url</th>
             <th>Where</th>
@@ -15,31 +59,19 @@ class ConferenceList extends PureComponent {
             <th>Month</th>
             <th>SubmissionDeadline</th>
           </tr>
-          <tr>
-            <td>Agent Conf</td>
-            <td>http://www.agent.sh/</td>
-            <td>Dornbirn, Austria</td>
-            <td>January 20-21, 2017</td>
-            <td>January</td>
-            <td></td>
-          </tr>
-          <tr>
-            <td>O'Reilly Velocity Conference</td>
-            <td>
-              {' '}
-              <a href="http://conferences.oreilly.com/velocity/vl-ca">
-                http://conferences.oreilly.com/velocity/vl-ca
-              </a>
-            </td>
-            <td>San Jose, CA</td>
-            <td>January 19-22, 2017</td>
-            <td>January</td>
-            <td></td>
-          </tr>
+          {this.getTable(list)}
         </tbody>
       </table>
     )
   }
 }
 
-export default ConferenceList
+const mapStateToProps = (state) => ({
+  loading: loadingSelector(state),
+  list: listSelector(state)
+})
+
+export default connect(
+  mapStateToProps,
+  { getAll }
+)(ConferenceList)
