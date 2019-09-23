@@ -15,6 +15,26 @@ class ApiService {
       .firestore()
       .collection('events')
       .get()
+
+  getPeopleList = () =>
+    firebase
+      .firestore()
+      .collection('people')
+      .get()
+
+  savePerson = (id, data) =>
+    firebase
+      .firestore()
+      .collection('people')
+      .doc(id)
+      .set(data)
+
+  getPerson = (id) =>
+    firebase
+      .firestore()
+      .collection('people')
+      .doc(id)
+      .get()
 }
 
 export default new ApiService()

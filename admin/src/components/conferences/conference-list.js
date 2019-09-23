@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react'
 import { connect } from 'react-redux'
+import Loader from '../loader'
 import {
   getAll,
   listSelector,
@@ -31,7 +32,8 @@ class ConferenceList extends PureComponent {
 
     for (const key in data) {
       const record = data[key]
-      res.push(this.getRecord(key, record))
+      const index = parseInt(key) + 1
+      res.push(this.getRecord(index, record))
     }
 
     return res
@@ -44,7 +46,7 @@ class ConferenceList extends PureComponent {
     console.log('ConferenceList::list::', list)
     console.log('ConferenceList::list.length::', list.length)
 
-    if (loading) return <h1>Загрузка...</h1>
+    if (loading) return <Loader />
     if (!list || list.length === 0) return <div>Список конференций пуст</div>
 
     return (

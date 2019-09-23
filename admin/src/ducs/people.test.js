@@ -1,6 +1,7 @@
 import { put, call } from 'redux-saga/effects'
 import { PEOPLE_ADD_REQUEST, PEOPLE_ADD_SUCCESS, addPersonSaga } from './people'
 import { generateId } from '../services/utils'
+import api from '../services/api'
 
 describe('people duck', () => {
   describe('add people saga', () => {
@@ -18,20 +19,26 @@ describe('people duck', () => {
 
       const saga = addPersonSaga(action)
 
-      const { value: valCall } = saga.next()
+      const {
+        value: { type }
+      } = saga.next()
+      expect(type.toUpperCase()).toEqual('PUT')
 
+      let { value: valCall } = saga.next()
       expect(valCall).toEqual(call(generateId))
 
       const id = generateId()
-      const { value } = saga.next(id)
+      valCall = saga.next(id).value
+      expect(valCall).toEqual(call(api.savePerson, id + '', person))
 
-      expect(value).toEqual(
+      valCall = saga.next().value
+      expect(valCall).toEqual(call(api.getPerson, id + ''))
+
+      const resPerson = saga.next({ id, ...person }).value
+      expect(resPerson).toEqual(
         put({
           type: PEOPLE_ADD_SUCCESS,
-          payload: {
-            id,
-            ...action.payload.person
-          }
+          payload: { person: { id, ...person } }
         })
       )
 

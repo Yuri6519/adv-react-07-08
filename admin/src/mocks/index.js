@@ -7,7 +7,7 @@ export function saveEventsToFB() {
   conferences.forEach((conference) => eventsRef.add(conference))
 }
 
-window.saveEventsToFB = saveEventsToFB
+//window.saveEventsToFB = saveEventsToFB
 
 export function getCollectionFromDb() {
   const eventsRef = firebase.firestore().collection('events')
@@ -22,15 +22,4 @@ export function getCollectionFromDb() {
     .catch((err) => console.log('Error getting documents', err))
 }
 
-window.getCollectionFromDb = getCollectionFromDb
-
-export async function getCollectionFromDb123() {
-  const eventsRef = firebase.firestore().collection('events')
-
-  const all = await eventsRef.get()
-  all.forEach((doc) => {
-    console.log('all123::', { id: doc.id, ...doc.data() })
-  })
-}
-
-window.getCollectionFromDb123 = getCollectionFromDb123
+//window.getCollectionFromDb = getCollectionFromDb
