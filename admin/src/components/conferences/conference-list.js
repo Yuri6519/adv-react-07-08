@@ -7,14 +7,14 @@ import {
   loadingSelector
 } from '../../ducs/conference-list'
 
-class ConferenceList extends PureComponent {
+export class ConferenceList extends PureComponent {
   componentDidMount() {
     const { list = [] } = this.props
     if (list.length === 0) this.props.getAll()
   }
 
   getRecord = (index, data) => (
-    <tr key={data.id}>
+    <tr key={data.id} data-id="test-row">
       <td style={{ textAlign: 'right' }}>{index}</td>
       <td>{data.title}</td>
       <td>{data.url}</td>
@@ -42,9 +42,9 @@ class ConferenceList extends PureComponent {
   render() {
     const { list = [], loading } = this.props
 
-    console.log('ConferenceList::loading::', loading)
-    console.log('ConferenceList::list::', list)
-    console.log('ConferenceList::list.length::', list.length)
+    // console.log('ConferenceList::loading::', loading)
+    // console.log('ConferenceList::list::', list)
+    // console.log('ConferenceList::list.length::', list.length)
 
     if (loading) return <Loader />
     if (!list || list.length === 0) return <div>Список конференций пуст</div>
