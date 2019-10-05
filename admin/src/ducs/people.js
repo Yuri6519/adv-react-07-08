@@ -21,6 +21,11 @@ export const PEOPLE_GET_SUCCESS = `${prefix}/PEOPLE_GET_SUCCESS`
 export const PEOPLE_GET_ERROR = `${prefix}/PEOPLE_GET_ERROR`
 export const PEOPLE_GET_REQUEST = `${prefix}/PEOPLE_GET_REQUEST`
 
+export const PEOPLE_ADD_CONF_REQUEST = `${prefix}/PEOPLE_ADD_CONF_REQUEST`
+
+export const PEOPLE_ADD_TO_BASKET = `${prefix}/PEOPLE_ADD_TO_BASKET`
+export const PEOPLE_DEL_FROM_BASKET = `${prefix}/PEOPLE_DEL_FROM_BASKET`
+
 /**
  * Reducer
  * */
@@ -29,7 +34,8 @@ export const PeopleRecord = Record({
   lastName: null,
   userName: null,
   surName: null,
-  email: null
+  email: null,
+  choosen: false
 })
 
 const ReducerList = List
@@ -73,6 +79,26 @@ export default function reducer(state = ReducerRecord(), action = {}) {
 
     case PEOPLE_ADD_ERROR:
       return state.set('saving', false).set('error', error)
+
+    // add to basket
+    case PEOPLE_ADD_TO_BASKET:
+      const { id: addId } = payload
+      const addLst = state.get('list')
+      const addIndex = addLst.findIndex((elm) => elm.id === addId)
+      return state.set(
+        'list',
+        addLst.update(addIndex, (value) => value.set('choosen', true))
+      )
+
+    // del from basket
+    case PEOPLE_DEL_FROM_BASKET:
+      const { id: delId } = payload
+      const delLst = state.get('list')
+      const delIndex = delLst.findIndex((elm) => elm.id === delId)
+      return state.set(
+        'list',
+        delLst.update(delIndex, (value) => value.set('choosen', false))
+      )
 
     default:
       return state
@@ -128,6 +154,27 @@ export function addPerson(person) {
 export function getAllPeople() {
   return {
     type: PEOPLE_GET_REQUEST
+  }
+}
+
+export function addConfToPerson(personId, confId) {
+  return {
+    type: PEOPLE_ADD_CONF_REQUEST,
+    pyload: { personId, confId }
+  }
+}
+
+export function addToBasket(id) {
+  return {
+    type: PEOPLE_ADD_TO_BASKET,
+    payload: { id }
+  }
+}
+
+export function delFromBasket(id) {
+  return {
+    type: PEOPLE_DEL_FROM_BASKET,
+    payload: { id }
   }
 }
 

@@ -4,12 +4,14 @@ import history from '../history'
 import { reducer as form } from 'redux-form'
 import auth from '../ducs/auth'
 import people from '../ducs/people'
-import conferenceList from '../ducs/conference-list'
+import conferenceList from '../ducs/conference'
+import basket from '../ducs/basket'
 
 export default combineReducers({
   router: connectRouter(history),
   form,
   auth,
   people,
-  conferenceList
+  conferenceList,
+  basket
 })

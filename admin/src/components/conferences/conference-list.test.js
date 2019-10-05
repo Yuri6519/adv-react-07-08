@@ -1,5 +1,5 @@
 import React from 'react'
-import Enzyme, { shallow } from 'enzyme'
+import Enzyme, { shallow, render, mount } from 'enzyme'
 import Adapter from 'enzyme-adapter-react-16'
 import { ConferenceList } from './conference-list'
 import conferences from '../../mocks/conferences'
@@ -19,12 +19,35 @@ describe('conference-list', () => {
   })
 
   it('should render a conference list', () => {
-    const component = shallow(<ConferenceList list={list} />, {
+    const component = render(<ConferenceList list={list} />, {
       disableLifecycleMethods: true
     })
 
     expect(component.find('[data-id="test-row"]').length).toEqual(
       conferences.length
     )
+  })
+
+  it('should call getAll function', () => {
+    const fn = jest.fn()
+
+    shallow(<ConferenceList getAll={fn} />)
+
+    expect(fn.mock.calls.length).toBe(1)
+  })
+
+  it('should proceed select event', () => {
+    const fn = jest.fn()
+
+    const component = mount(
+      <ConferenceList list={list} getAll={jest.fn()} onSelect={fn} />
+    )
+
+    component
+      .find('[data-id="test-row"]')
+      .at(1)
+      .simulate('click')
+
+    expect(fn).toBeCalledWith(list[1].id)
   })
 })

@@ -17,6 +17,9 @@ export const CONFERENCES_GET_ERROR = `${prefix}/CONFERENCES_GET_ERROR`
 
 export const CONFERENCES_GET_REQUEST = `${prefix}/CONFERENCES_GET_REQUEST`
 
+export const CONFERENCES_ADD_TO_BASKET = `${prefix}/CONFERENCES_ADD_TO_BASKET`
+export const CONFERENCES_DEL_FROM_BASKET = `${prefix}/CONFERENCES_DEL_FROM_BASKET`
+
 /**
  * Reducer
  * */
@@ -29,7 +32,8 @@ const ConferenceRecord = Record({
   where: null,
   when: null,
   month: null,
-  submissionDeadline: null
+  submissionDeadline: null,
+  choosen: false
 })
 
 const ConferenceList = List
@@ -60,6 +64,27 @@ export default function reducer(state = ReducerRecord(), action = {}) {
 
     case CONFERENCES_GET_ERROR:
       return state.set('loading', false).set('error', error)
+
+    // add to basket
+    case CONFERENCES_ADD_TO_BASKET:
+      const { id: addId } = payload
+      const addLst = state.get('list')
+      const addIndex = addLst.findIndex((elm) => elm.id === addId)
+      return state.set(
+        'list',
+        addLst.update(addIndex, (value) => value.set('choosen', true))
+      )
+
+    // del from basket
+    case CONFERENCES_DEL_FROM_BASKET:
+      const { id: delId } = payload
+      const delLst = state.get('list')
+      const delIndex = delLst.findIndex((elm) => elm.id === delId)
+      return state.set(
+        'list',
+        delLst.update(delIndex, (value) => value.set('choosen', false))
+      )
+
     default:
       return state
   }
@@ -82,6 +107,20 @@ export const listSelector = createSelector(
 export function getAll() {
   return {
     type: CONFERENCES_GET_REQUEST
+  }
+}
+
+export function addToBasket(id) {
+  return {
+    type: CONFERENCES_ADD_TO_BASKET,
+    payload: { id }
+  }
+}
+
+export function delFromBasket(id) {
+  return {
+    type: CONFERENCES_DEL_FROM_BASKET,
+    payload: { id }
   }
 }
 

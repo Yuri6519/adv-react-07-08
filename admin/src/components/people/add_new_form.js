@@ -3,75 +3,19 @@ import { reduxForm, Field, reset } from 'redux-form'
 import { connect } from 'react-redux'
 import { validate as emailValidator } from 'email-validator'
 import ErrorField from '../common/error_field'
-import {
-  listSelector,
-  loadingSelector,
-  savingSelector,
-  errorSelector,
-  getAllPeople,
-  addPerson
-} from '../../ducs/people'
-import Loader from '../loader'
+import PeoplePage from './people-list'
+import { savingSelector, errorSelector, addPerson } from '../../ducs/people'
 
 const FORM_NAME = 'people-add-new'
 
 class AddPerson extends PureComponent {
-  componentDidMount() {
-    const { getList } = this.props
-    getList()
-  }
-
-  doList = (list) => {
-    if (!list || list.length === 0) return null
-
-    return (
-      <table id="dynamic" border="1" cellSpacing="0" cellPadding="5">
-        <tbody>
-          <tr>
-            <th>№ п/п</th>
-            <th>Ид</th>
-            <th>Фамилия</th>
-            <th>Имя</th>
-            <th>Отчество</th>
-            <th>e-Mail</th>
-          </tr>
-          {this.getTable(list)}
-        </tbody>
-      </table>
-    )
-  }
-
-  getTable = (list) => {
-    const res = []
-
-    for (const key in list) {
-      const record = list[key]
-      const index = parseInt(key) + 1
-      res.push(this.getRecord(index, record))
-    }
-
-    return res
-  }
-
-  getRecord = (index, data) => (
-    <tr key={data.id}>
-      <td style={{ textAlign: 'right' }}>{index}</td>
-      <td>{data.id}</td>
-      <td>{data.lastName}</td>
-      <td>{data.userName}</td>
-      <td>{data.surName}</td>
-      <td>{data.email}</td>
-    </tr>
-  )
-
   getError = (error) => (
     <h3 style={{ color: 'red' }}>Error when saving to DB: {error.message}</h3>
   )
 
   render() {
-    const { handleSubmit, peopleList, loading, saving, exception } = this.props
+    const { handleSubmit, saving, exception } = this.props
 
-    if (loading) return <Loader />
     return (
       <form onSubmit={handleSubmit}>
         <Field name="lastName" component={ErrorField} label="Фамилия" />
@@ -82,7 +26,7 @@ class AddPerson extends PureComponent {
         {saving ? <h3>Добавляю...</h3> : null}
         {exception ? this.getError(exception) : null}
         <p />
-        {this.doList(peopleList)}
+        <PeoplePage />
       </form>
     )
   }
@@ -109,15 +53,12 @@ const validate = (values, props) => {
 }
 
 const mapStateToProps = (state) => ({
-  loading: loadingSelector(state),
-  peopleList: listSelector(state),
   saving: savingSelector(state),
   exception: errorSelector(state)
 })
 
 const mapDispatchToProps = {
-  onSubmit: (person) => addPerson(person),
-  getList: getAllPeople
+  onSubmit: (person) => addPerson(person)
 }
 
 const onSubmitSuccess = (_, dispatch) => dispatch(reset(FORM_NAME))

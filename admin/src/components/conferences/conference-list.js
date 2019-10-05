@@ -1,50 +1,37 @@
 import React, { PureComponent } from 'react'
 import { connect } from 'react-redux'
 import Loader from '../loader'
-import {
-  getAll,
-  listSelector,
-  loadingSelector
-} from '../../ducs/conference-list'
+import ConferenceRecord from './record'
+import { getAll, listSelector, loadingSelector } from '../../ducs/conference'
 
 export class ConferenceList extends PureComponent {
+  static defaultProps = {
+    onSelect: () => {}
+  }
+
   componentDidMount() {
     const { list = [] } = this.props
     if (list.length === 0) this.props.getAll()
   }
 
-  getRecord = (index, data) => (
-    <tr key={data.id} data-id="test-row">
-      <td style={{ textAlign: 'right' }}>{index}</td>
-      <td>{data.title}</td>
-      <td>{data.url}</td>
-      <td>{data.where}</td>
-      <td>{data.when}</td>
-      <td>{data.month}</td>
-      <td>{data.submissionDeadline}</td>
-    </tr>
-  )
-
-  getTable = (data) => {
-    if (!data || !(data instanceof Array)) return null
-
-    const res = []
-
-    for (const key in data) {
-      const record = data[key]
-      const index = parseInt(key) + 1
-      res.push(this.getRecord(index, record))
-    }
-
-    return res
+  getRecord = (data, index) => {
+    const { onSelect, shouldDrag } = this.props
+    return (
+      <ConferenceRecord
+        index={index}
+        data={data}
+        key={data.id}
+        handleSelectEvent={onSelect}
+        shouldDrag={shouldDrag}
+      />
+    )
   }
+
+  getTable = (data) =>
+    !data || !(data instanceof Array) ? null : data.map(this.getRecord)
 
   render() {
     const { list = [], loading } = this.props
-
-    // console.log('ConferenceList::loading::', loading)
-    // console.log('ConferenceList::list::', list)
-    // console.log('ConferenceList::list.length::', list.length)
 
     if (loading) return <Loader />
     if (!list || list.length === 0) return <div>Список конференций пуст</div>
