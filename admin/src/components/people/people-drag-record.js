@@ -1,27 +1,43 @@
+import { PureComponent } from 'react'
+import { getEmptyImage } from 'react-dnd-html5-backend'
 import { DragSource } from 'react-dnd'
 import record from './people-record'
 import { getConfDragSourceName } from '../../services/utils'
 
-const PeopleDragRecord = ({ index, data, connectDragSource, isDragging }) => {
-  const dndStyle = {
-    opacity: isDragging ? 0.3 : 1
+class PeopleDragRecord extends PureComponent {
+  componentDidMount() {
+    const { connectDragPreview } = this.props
+    if (connectDragPreview) {
+      connectDragPreview(getEmptyImage(), {
+        captureDraggingState: true
+      })
+    }
   }
 
-  const props = {
-    index,
-    data,
-    connect: connectDragSource,
-    dndStyle
-  }
+  render() {
+    const { index, data, connectDragSource, isDragging } = this.props
+    const dndStyle = {
+      opacity: isDragging ? 0.3 : 1,
+      cursor: 'move'
+    }
 
-  return record(props)
+    const props = {
+      index,
+      data,
+      connect: connectDragSource,
+      dndStyle
+    }
+
+    return record(props)
+  }
 }
 
 const spec = {
   beginDrag(props, monitor, component) {
     return {
       type: 'person',
-      id: props.data.id
+      id: props.data.id,
+      title: props.data.lastName
     }
   }
 }
@@ -29,6 +45,7 @@ const spec = {
 const collect = (connect, monitor) => {
   return {
     connectDragSource: connect.dragSource(),
+    connectDragPreview: connect.dragPreview(),
     isDragging: monitor.isDragging()
   }
 }

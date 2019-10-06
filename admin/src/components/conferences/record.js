@@ -1,48 +1,68 @@
-import React from 'react'
+import React, { PureComponent } from 'react'
 import { DragSource } from 'react-dnd'
+import { getEmptyImage } from 'react-dnd-html5-backend'
 import { getConfDragSourceName } from '../../services/utils'
 
-const Record = ({
-  index,
-  data,
-  handleSelectEvent,
-  connectDragSource,
-  isDragging,
-  shouldDrag
-}) => {
-  const dndStyle = {
-    opacity: isDragging ? 0.3 : 1
+class ConfREcord extends PureComponent {
+  componentDidMount() {
+    const { connectDragPreview } = this.props
+    if (connectDragPreview) {
+      connectDragPreview(getEmptyImage(), {
+        captureDraggingState: true
+      })
+    }
   }
 
-  return shouldDrag
-    ? !data.choosen
-      ? connectDragSource(getRecord(index, data, handleSelectEvent, dndStyle))
-      : null
-    : getRecord(index, data, handleSelectEvent, dndStyle)
-}
+  get record() {
+    const {
+      index,
+      data,
+      handleSelectEvent,
+      connectDragSource,
+      isDragging,
+      shouldDrag
+    } = this.props
 
-const getRecord = (index, data, handleSelectEvent, dndStyle) => (
-  <tr
-    key={data.id}
-    data-id="test-row"
-    onClick={handleSelectEvent(data.id)}
-    style={dndStyle}
-  >
-    <td style={{ textAlign: 'right' }}>{index}</td>
-    <td>{data.title}</td>
-    <td>{data.url}</td>
-    <td>{data.where}</td>
-    <td>{data.when}</td>
-    <td>{data.month}</td>
-    <td>{data.submissionDeadline}</td>
-  </tr>
-)
+    const dndStyle = {
+      opacity: isDragging ? 0.3 : 1,
+      cursor: 'move'
+    }
+
+    return shouldDrag
+      ? !data.choosen
+        ? connectDragSource(
+            this.getRecord(index, data, handleSelectEvent, dndStyle)
+          )
+        : null
+      : this.getRecord(index, data, handleSelectEvent, null)
+  }
+
+  getRecord = (index, data, handleSelectEvent, dndStyle) => (
+    <tr
+      key={data.id}
+      data-id="test-row"
+      onClick={handleSelectEvent(data.id)}
+      style={dndStyle}
+    >
+      <td style={{ textAlign: 'right' }}>{index}</td>
+      <td>{data.title}</td>
+      <td>{data.url}</td>
+      <td>{data.where}</td>
+      <td>{data.when}</td>
+      <td>{data.month}</td>
+      <td>{data.submissionDeadline}</td>
+    </tr>
+  )
+
+  render = () => this.record
+}
 
 const spec = {
   beginDrag(props, monitor, component) {
     return {
       type: 'conference',
-      id: props.data.id
+      id: props.data.id,
+      title: props.data.title
     }
   }
 }
@@ -50,8 +70,9 @@ const spec = {
 const collect = (connect, monitor) => {
   return {
     connectDragSource: connect.dragSource(),
+    connectDragPreview: connect.dragPreview(),
     isDragging: monitor.isDragging()
   }
 }
 
-export default DragSource(getConfDragSourceName, spec, collect)(Record)
+export default DragSource(getConfDragSourceName, spec, collect)(ConfREcord)
