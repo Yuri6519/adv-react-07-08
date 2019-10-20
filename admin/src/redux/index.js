@@ -6,7 +6,7 @@ import logger from 'redux-logger'
 import reducer from './reducer'
 import history from '../history'
 import rootSaga from './saga'
-import { init as initAuth } from '../ducs/auth'
+//import { init as initAuth } from '../ducs/auth'
 
 const sagaMiddleware = createSagaMiddleware()
 
@@ -20,6 +20,6 @@ const store = createStore(reducer, composeEnhancers(enhancer))
 
 sagaMiddleware.run(rootSaga)
 
-initAuth(store)
+//initAuth(store) - oerride for channel
 
 export default store

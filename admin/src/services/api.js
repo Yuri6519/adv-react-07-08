@@ -16,6 +16,13 @@ class ApiService {
       .collection('events')
       .get()
 
+  delConf = (id) =>
+    firebase
+      .firestore()
+      .collection('events')
+      .doc(id)
+      .delete()
+
   getPeopleList = () =>
     firebase
       .firestore()
@@ -35,6 +42,26 @@ class ApiService {
       .collection('people')
       .doc(id)
       .get()
+
+  delPerson = (id) =>
+    firebase
+      .firestore()
+      .collection('people')
+      .doc(id)
+      .delete()
+
+  subscribeForPeople = (callback) =>
+    firebase
+      .firestore()
+      .collection('people')
+      //      .onSnapshot(snapshot => callback(snapshot))
+      .onSnapshot(callback) // the same as above
+
+  subscribeForConf = (callback) =>
+    firebase
+      .firestore()
+      .collection('events')
+      .onSnapshot((snapshot) => callback(snapshot))
 }
 
 export default new ApiService()

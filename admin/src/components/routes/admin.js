@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from 'react'
 import { NavLink, Route } from 'react-router-dom'
-//import Auth from '../common/checkAuth'
+import Auth from '../common/checkAuth'
 import PeopleForm from '../../components/people/add_new_form'
 import ConferenceList from '../conferences/conference-list'
 import AllPage from '../all/all-list'
@@ -52,8 +52,8 @@ class AdminPage extends Component {
 
     return (
       <div>
-        {/* <Auth content={this.content}/> */}
-        {this.content}
+        <Auth content={this.content} />
+        {/* {this.content} */}
       </div>
     )
   }

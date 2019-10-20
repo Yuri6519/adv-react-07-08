@@ -1,7 +1,8 @@
 import { appName } from '../config'
 import { Record, List } from 'immutable'
-import { takeEvery, put, call } from 'redux-saga/effects'
+import { takeEvery, put, call, take, spawn } from 'redux-saga/effects'
 import { createSelector } from 'reselect'
+import { eventChannel } from 'redux-saga'
 import api from '../services/api'
 
 /**
@@ -19,6 +20,13 @@ export const CONFERENCES_GET_REQUEST = `${prefix}/CONFERENCES_GET_REQUEST`
 
 export const CONFERENCES_ADD_TO_BASKET = `${prefix}/CONFERENCES_ADD_TO_BASKET`
 export const CONFERENCES_DEL_FROM_BASKET = `${prefix}/CONFERENCES_DEL_FROM_BASKET`
+
+export const CONFERENCES_DELETE_START = `${prefix}/CONFERENCES_DELETE_START`
+export const CONFERENCES_DELETE_SUCCESS = `${prefix}/CONFERENCES_DELETE_SUCCESS`
+export const CONFERENCES_DELETE_ERROR = `${prefix}/CONFERENCES_DELETE_ERROR`
+export const CONFERENCES_DELETE_REQUEST = `${prefix}/CONFERENCES_DELETE_REQUEST`
+
+export const CONFERENCES_ONLINE_SYNC_SUCCESS = `${prefix}/CONFERENCES_ONLINE_SYNC_SUCCESS`
 
 /**
  * Reducer
@@ -52,6 +60,7 @@ export default function reducer(state = ReducerRecord(), action = {}) {
       return state.set('loading', true)
 
     case CONFERENCES_GET_SUCCESS:
+    case CONFERENCES_ONLINE_SYNC_SUCCESS:
       let list = []
       const { docs } = payload
       if (docs) {
@@ -124,6 +133,13 @@ export function delFromBasket(id) {
   }
 }
 
+export function delConf(id) {
+  return {
+    type: CONFERENCES_DELETE_REQUEST,
+    payload: { id }
+  }
+}
+
 /**
  * Sagas
  * */
@@ -147,6 +163,42 @@ export function* getAllSaga() {
   }
 }
 
+export function* delConfSaga(action) {
+  yield put({ type: CONFERENCES_DELETE_START })
+
+  try {
+    const { payload: { id } = {} } = action
+
+    yield call(api.delConf, id + '')
+
+    yield put({
+      type: CONFERENCES_DELETE_SUCCESS
+    })
+  } catch (error) {
+    yield put({
+      type: CONFERENCES_DELETE_ERROR,
+      error
+    })
+  }
+}
+
+const createChanel = () => eventChannel((emit) => api.subscribeForConf(emit))
+
+export function* onlineSyncSaga() {
+  const chanel = yield call(createChanel)
+
+  while (true) {
+    const data = yield take(chanel)
+
+    yield put({
+      type: CONFERENCES_ONLINE_SYNC_SUCCESS,
+      payload: { docs: data }
+    })
+  }
+}
+
 export function* saga() {
+  yield spawn(onlineSyncSaga)
   yield takeEvery(CONFERENCES_GET_REQUEST, getAllSaga)
+  yield takeEvery(CONFERENCES_DELETE_REQUEST, delConfSaga)
 }

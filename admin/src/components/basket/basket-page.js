@@ -4,6 +4,7 @@ import PeoplePage from '../people/people-list'
 import { setConfDragSourceName } from '../../services/utils'
 import BasketList from '../basket/basket-list'
 import CustomDragLayer from '../common/dragPreview/customDragLayer'
+import Trash from '../../components/trash'
 
 export default () => {
   setConfDragSourceName('basket')
@@ -16,6 +17,7 @@ export default () => {
       <p />
       <ConferenceList shouldDrag={true} />
       <CustomDragLayer dragType="conference" />
+      <Trash />
     </Fragment>
   )
 }

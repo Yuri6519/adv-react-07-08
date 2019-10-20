@@ -1,6 +1,19 @@
 import { appName } from '../config'
 import { Record, List } from 'immutable'
-import { put, takeEvery, call } from 'redux-saga/effects'
+import {
+  put,
+  takeEvery,
+  call,
+  delay,
+  all,
+  fork,
+  spawn,
+  cancel,
+  cancelled,
+  race,
+  take
+} from 'redux-saga/effects'
+import { eventChannel } from 'redux-saga'
 import { createSelector } from 'reselect'
 import { generateId } from '../services/utils'
 import api from '../services/api'
@@ -25,6 +38,13 @@ export const PEOPLE_ADD_CONF_REQUEST = `${prefix}/PEOPLE_ADD_CONF_REQUEST`
 
 export const PEOPLE_ADD_TO_BASKET = `${prefix}/PEOPLE_ADD_TO_BASKET`
 export const PEOPLE_DEL_FROM_BASKET = `${prefix}/PEOPLE_DEL_FROM_BASKET`
+
+export const PEOPLE_ONLINE_SYNC_SUCCESS = `${prefix}/PEOPLE_ONLINE_SYNC_SUCCESS`
+
+export const PEOPLE_DELETE_START = `${prefix}/PEOPLE_DELETE_START`
+export const PEOPLE_DELETE_SUCCESS = `${prefix}/PEOPLE_DELETE_SUCCESS`
+export const PEOPLE_DELETE_ERROR = `${prefix}/PEOPLE_DELETE_ERROR`
+export const PEOPLE_DELETE_REQUEST = `${prefix}/PEOPLE_DELETE_REQUEST`
 
 /**
  * Reducer
@@ -56,6 +76,7 @@ export default function reducer(state = ReducerRecord(), action = {}) {
       return state.set('loading', true)
 
     case PEOPLE_GET_SUCCESS:
+    case PEOPLE_ONLINE_SYNC_SUCCESS:
       const list = []
       const { people = [] } = payload
       people.forEach((person) => {
@@ -71,11 +92,13 @@ export default function reducer(state = ReducerRecord(), action = {}) {
       return state.set('saving', true)
 
     case PEOPLE_ADD_SUCCESS:
-      const { person } = payload
-      const ls = state
-        .get('list')
-        .push(PeopleRecord({ id: person.id, ...person.data() }))
-      return state.set('saving', false).set('list', ls)
+      // закоммитил, т.к. перечитываю список с fork / spawn / channel
+      // const { person } = payload
+      // const ls = state
+      //   .get('list')
+      //   .push(PeopleRecord({ id: person.id, ...person.data() }))
+      // return state.set('saving', false).set('list', ls)
+      return state.set('saving', false)
 
     case PEOPLE_ADD_ERROR:
       return state.set('saving', false).set('error', error)
@@ -178,6 +201,13 @@ export function delFromBasket(id) {
   }
 }
 
+export function delPerson(id) {
+  return {
+    type: PEOPLE_DELETE_REQUEST,
+    payload: { id }
+  }
+}
+
 /**
  * Sagas
  * */
@@ -193,18 +223,38 @@ export function* addPersonSaga(action) {
 
     yield call(api.savePerson, id + '', person)
 
-    const res = yield call(api.getPerson, id + '')
+    // removed because chanell is esed
+    // const res = yield call(api.getPerson, id + '')
 
-    if (!res)
-      throw new Error(`failed receive data after saving to DB: res is null`)
+    // if (!res)
+    //   throw new Error(`failed receive data after saving to DB: res is null`)
 
     yield put({
-      type: PEOPLE_ADD_SUCCESS,
-      payload: { person: res }
+      type: PEOPLE_ADD_SUCCESS
+      // payload: { person: res }
     })
   } catch (error) {
     yield put({
       type: PEOPLE_ADD_ERROR,
+      error
+    })
+  }
+}
+
+export function* delPersonSaga(action) {
+  yield put({ type: PEOPLE_DELETE_START })
+
+  try {
+    const { payload: { id } = {} } = action
+
+    yield call(api.delPerson, id + '')
+
+    yield put({
+      type: PEOPLE_DELETE_SUCCESS
+    })
+  } catch (error) {
+    yield put({
+      type: PEOPLE_DELETE_ERROR,
       error
     })
   }
@@ -228,7 +278,56 @@ export function* getPeopleListSaga() {
   }
 }
 
+export function* syncPeoplehWithStorageSaga() {
+  try {
+    let i = 0
+    while (true) {
+      if (i++ >= 5) throw new Error('some error ocured')
+
+      console.log('saga-----', i)
+      yield call(getPeopleListSaga)
+      yield delay(1000)
+    }
+  } finally {
+    if (yield cancelled()) {
+      console.log('saga-----saga has been canceled')
+    }
+    console.log('saga-----saga common logic finished')
+  }
+}
+
+export function* cancelSyncSaga() {
+  yield race({
+    sync: syncPeoplehWithStorageSaga(),
+    timeout: delay(3000)
+  })
+  // const task = yield fork(syncPeoplehWithStorageSaga)
+  // yield delay(3000)
+  // yield cancel(task)
+}
+
+//api.subscribeForPeople(snapshot => console.log('subscribeForPeople::subscribeForPeople::', snapshot))
+
+const createChanel = () => eventChannel((emit) => api.subscribeForPeople(emit))
+
+export function* onlineSyncSaga() {
+  const chan = yield call(createChanel)
+
+  while (true) {
+    const data = yield take(chan)
+
+    yield put({
+      type: PEOPLE_ONLINE_SYNC_SUCCESS,
+      payload: { people: data }
+    })
+  }
+}
+
 export function* saga() {
-  yield takeEvery(PEOPLE_ADD_REQUEST, addPersonSaga)
-  yield takeEvery(PEOPLE_GET_REQUEST, getPeopleListSaga)
+  yield spawn(onlineSyncSaga)
+  yield all([
+    yield takeEvery(PEOPLE_ADD_REQUEST, addPersonSaga),
+    yield takeEvery(PEOPLE_DELETE_REQUEST, delPersonSaga)
+    //yield takeEvery(PEOPLE_GET_REQUEST, getPeopleListSaga)
+  ])
 }

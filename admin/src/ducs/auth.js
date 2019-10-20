@@ -2,7 +2,16 @@ import { appName } from '../config'
 import { Record } from 'immutable'
 //import firebase from 'firebase/app'
 import { createSelector } from 'reselect'
-import { all, takeEvery, put, call, take, delay } from 'redux-saga/effects'
+import {
+  all,
+  takeEvery,
+  put,
+  call,
+  take,
+  delay,
+  spawn
+} from 'redux-saga/effects'
+import { eventChannel } from 'redux-saga'
 
 import api from '../services/api'
 
@@ -115,15 +124,15 @@ export const errorLimit = createSelector(
 /**
  * Initialization
  */
-
-export const init = (store) => {
-  api.changeState((user) => {
-    store.dispatch({
-      type: STATE_CHANGE_REQUEST,
-      payload: { user }
-    })
-  })
-}
+// now use channel
+// export const init = (store) => {
+//   api.changeState((user) => {
+//     store.dispatch({
+//       type: STATE_CHANGE_REQUEST,
+//       payload: { user }
+//     })
+//   })
+// }
 
 /**
  * Action Creators
@@ -234,10 +243,30 @@ export function* stateChangeSaga({ payload }) {
   }
 }
 
+const createChannel = () => eventChannel((emit) => api.changeState(emit))
+
+export function* changeSycSaga() {
+  const channel = yield call(createChannel)
+
+  while (true) {
+    const data = yield take(channel)
+
+    yield call(stateChangeSaga, { payload: { user: data } })
+
+    // если не запускать саму сагу, как выше,
+    // а использоавть takeEvery, как ниже
+    // yield put({
+    //   type: STATE_CHANGE_REQUEST,
+    //   payload: { user: data }
+    // })
+  }
+}
+
 export function* saga() {
+  yield spawn(changeSycSaga)
   yield all([
     signInSaga(),
-    takeEvery(SIGN_UP_REQUEST, signUpSaga),
-    takeEvery(STATE_CHANGE_REQUEST, stateChangeSaga)
+    takeEvery(SIGN_UP_REQUEST, signUpSaga)
+    // takeEvery(STATE_CHANGE_REQUEST, stateChangeSaga)
   ])
 }
